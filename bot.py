@@ -30,12 +30,12 @@ TELEGRAM_CHAT_ID = os.environ["TELEGRAM_CHAT_ID"]     # Telegram kullanıcı/gru
 KICK_CHANNEL     = os.environ.get("KICK_CHANNEL", "")  # kick.com/KANAL_ADI
 
 TIME_WINDOW      = int(os.environ.get("TIME_WINDOW", "15"))    # saniye
-MIN_USERS        = int(os.environ.get("MIN_USERS", "10"))       # farklı kullanıcı sayısı
-MIN_MSG_LENGTH   = int(os.environ.get("MIN_MSG_LENGTH", "3"))   # min mesaj uzunluğu (spam filtresi)
+MIN_USERS        = int(os.environ.get("MIN_USERS", "5"))       # farklı kullanıcı sayısı
+MIN_MSG_LENGTH   = int(os.environ.get("MIN_MSG_LENGTH", "2"))   # min mesaj uzunluğu (spam filtresi)
 
 # Pusher bağlantısı - eğer değişirse Chrome DevTools > Network > "pusher" filtrele
 PUSHER_APP_KEY   = os.environ.get("PUSHER_APP_KEY", "eb1d5f283081a78b932c")
-PUSHER_URL       = f"wss://ws-us2.pusher.com/app/{PUSHER_APP_KEY}?protocol=7&client=js&version=7.6.0&flash=false"
+PUSHER_URL = os.getenv("PUSHER_URL", "wss://ws-us3.pusher.com/app/eb1d5f283081a78b932c?protocol=7&client=js&version=7.4.0&flash=false")
 
 KICK_API_BASE    = "https://kick.com/api/v2/channels"
 
