@@ -35,7 +35,7 @@ MIN_MSG_LENGTH   = int(os.environ.get("MIN_MSG_LENGTH", "2"))   # min mesaj uzun
 
 # Pusher bağlantısı - eğer değişirse Chrome DevTools > Network > "pusher" filtrele
 PUSHER_APP_KEY   = os.environ.get("PUSHER_APP_KEY", "eb1d5f283081a78b932c")
-PUSHER_URL = os.getenv("PUSHER_URL", "wss://ws-us3.pusher.com/app/eb1d5f283081a78b932c?protocol=7&client=js&version=7.4.0&flash=false")
+PUSHER_URL = os.getenv("PUSHER_URL", "wss://ws-eu.pusher.com/app/eb1d5f283081a78b932c?protocol=7&client=js&version=7.4.0&flash=false")
 
 KICK_API_BASE    = "https://kick.com/api/v2/channels"
 
