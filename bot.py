@@ -52,19 +52,40 @@ message_tracker: Dict[str, MessageRecord] = defaultdict(MessageRecord)
 
 # ─── Kick API ────────────────────────────────────────────────────────────────
 async def get_chatroom_id(session: aiohttp.ClientSession, channel_slug: str) -> int:
-    """Kanal adından chatroom ID'sini çeker."""
+    """Kanal adından chatroom ID'sini çeker. CHATROOM_ID env var varsa direkt kullanır."""
+
+    # Manuel ID tanımlanmışsa API'ye hiç gitme
+    manual_id = os.environ.get("CHATROOM_ID", "").strip()
+    if manual_id:
+        log.info(f"✅ Chatroom ID env'den alındı: {manual_id}")
+        return int(manual_id)
+
     url = f"{KICK_API_BASE}/{channel_slug}"
     headers = {
-        "User-Agent": "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36",
-        "Accept": "application/json",
+        "User-Agent": "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/124.0.0.0 Safari/537.36",
+        "Accept": "application/json, text/plain, */*",
+        "Accept-Language": "en-US,en;q=0.9",
+        "Referer": "https://kick.com/",
+        "Origin": "https://kick.com",
+        "sec-ch-ua": '"Chromium";v="124", "Google Chrome";v="124"',
+        "sec-ch-ua-mobile": "?0",
+        "sec-ch-ua-platform": '"Windows"',
+        "sec-fetch-dest": "empty",
+        "sec-fetch-mode": "cors",
+        "sec-fetch-site": "same-origin",
     }
     async with session.get(url, headers=headers) as resp:
         if resp.status != 200:
-            raise ValueError(f"Kick API hatası: HTTP {resp.status} — kanal adını kontrol et: '{channel_slug}'")
+            raise ValueError(
+                f"Kick API hatası: HTTP {resp.status}\n"
+                f"👉 Çözüm: Tarayıcında şu URL'yi aç: https://kick.com/api/v2/channels/{channel_slug}\n"
+                f"   'chatroom':{{'id': XXXXX}} kısmındaki sayıyı kopyala.\n"
+                f"   Render'da CHATROOM_ID=XXXXX olarak env variable ekle."
+            )
         data = await resp.json()
         chatroom_id = data.get("chatroom", {}).get("id")
         if not chatroom_id:
-            raise ValueError("chatroom ID bulunamadı. API yanıtı değişmiş olabilir.")
+            raise ValueError("chatroom ID bulunamadı.")
         log.info(f"✅ Chatroom ID bulundu: {chatroom_id} ({channel_slug})")
         return chatroom_id
 
@@ -280,8 +301,9 @@ async def main() -> None:
     log.info("=" * 50)
 
     async with aiohttp.ClientSession() as session:
-        # Chatroom ID'sini al
+        # Chatroom ID'sini al (CHATROOM_ID env varsa API'ye gitme)
         chatroom_id = await get_chatroom_id(session, KICK_CHANNEL)
+        log.info(f"🔑 Chatroom ID: {chatroom_id}")
 
         # Başlangıç bildirimi
         await send_telegram(
