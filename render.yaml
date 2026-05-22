@@ -14,9 +14,9 @@ services:
       - key: TIME_WINDOW
         value: "15"          # saniye
       - key: MIN_USERS
-        value: "10"          # farklı kullanıcı sayısı
+        value: "5"          # farklı kullanıcı sayısı
       - key: MIN_MSG_LENGTH
-        value: "3"           # minimum mesaj uzunluğu
+        value: "1"           # minimum mesaj uzunluğu
       - key: PUSHER_APP_KEY
         value: "eb1d5f283081a78b932c"
     # Render free tier uyku modunu engeller (UptimeRobot ile kullanın)
