@@ -7,9 +7,12 @@ const express = require('express');
 const TIME_WINDOW_MS = 10 * 1000; // 10 saniye
 const MESSAGE_THRESHOLD = 4; // 4 mesaj
 const COOLDOWN_MS = 10 * 1000; // 10 saniye bekleme süresi
+const ALERT_LIMIT = 3; // Bir kelime için max atılacak bildirim
+const RESET_TIME_MS = 5 * 60 * 1000; // 5 dakika sessizlik sonrası sıfırlama
 
 let messageHistory = [];
 let cooldowns = {};
+let alertCount = {}; // Kelime bazlı bildirim sayacı
 
 // Telegram'a Mesaj Gönderme Fonksiyonu
 async function sendTelegramMessage(keyword, count) {
@@ -65,14 +68,25 @@ function processNewMessage(text) {
   if (count >= MESSAGE_THRESHOLD) {
     const lastAlerted = cooldowns[lowerText] || 0;
     
+    // Eğer bu kelime için en son alarmın üzerinden 5 dakika (RESET_TIME_MS) geçtiyse limiti sıfırla
+    if (now - lastAlerted > RESET_TIME_MS) {
+        alertCount[lowerText] = 0;
+    }
+
     // Sadece cooldown süresi geçtiyse tetikle
     if (now - lastAlerted > COOLDOWN_MS) {
-      console.log(`[Bot] SPAM YAKALANDI: ${lowerText} (${count} kez)`);
+      const currentAlerts = alertCount[lowerText] || 0;
       
-      // Telegram'a gönder
-      sendTelegramMessage(text.trim(), count);
+      if (currentAlerts < ALERT_LIMIT) {
+        console.log(`[Bot] SPAM YAKALANDI: ${lowerText} (${count} kez)`);
+        
+        // Telegram'a gönder
+        sendTelegramMessage(text.trim(), count);
+        
+        alertCount[lowerText] = currentAlerts + 1;
+      }
       
-      // Cooldown'a al (10 sn boyunca bu kelimeyi yoksay)
+      // Cooldown'a al (sürekli spam devam ederse süreyi ileri atar, limiti aşsa da 5 dk sessizlik bekler)
       cooldowns[lowerText] = now;
     }
   }
