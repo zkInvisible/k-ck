@@ -13,6 +13,7 @@ const RESET_TIME_MS = 5 * 60 * 1000; // 5 dakika sessizlik sonrası sıfırlama
 let messageHistory = [];
 let cooldowns = {};
 let alertCount = {}; // Kelime bazlı bildirim sayacı
+let lastLogTime = 0; // Render logları için zaman tutucu
 
 // Telegram'a Mesaj Gönderme Fonksiyonu
 async function sendTelegramMessage(keyword, count) {
@@ -46,46 +47,54 @@ function cleanOldMessages(now) {
 }
 
 // Yeni mesaj geldiğinde işleme
-function processNewMessage(text) {
+function processNewMessage(text, senderId) {
   const now = Date.now();
   const lowerText = text.trim().toLowerCase();
-  
+
   if (!lowerText) return;
 
   // Filtrelemeler (Saat, noktalama, vb.)
   const isTime = /^\d{1,2}:\d{2}$/.test(lowerText);
   const isJustPunctuation = /^[^a-zA-Z0-9çğıöşüÇĞİÖŞÜ]+$/.test(lowerText) && lowerText.length <= 3;
   const isSystemMsg = lowerText === "yeni mesajlar" || lowerText === "live" || lowerText === "clip" || lowerText.includes("bir mesaj gönderin");
-  
+
   if (isTime || isJustPunctuation || isSystemMsg) return;
 
-  // Mesajı hafızaya ekle
-  messageHistory.push({ text: lowerText, timestamp: now });
+  // Render loglarında çalıştığını görmek için her 60 saniyede sadece 1 mesaj örneği yazdır (Render'ı yormaz)
+  if (now - lastLogTime > 60 * 1000) {
+      console.log(`[Sistem Kontrol] Gelen Örnek Mesaj: "${text.trim()}" (Botun uyanık olduğunu teyit için dakikada bir yazdırılır)`);
+      lastLogTime = now;
+  }
+
+  // Mesajı hafızaya ekle (Gönderen kişinin eşsiz ID'si ile birlikte)
+  messageHistory.push({ text: lowerText, senderId: senderId, timestamp: now });
   cleanOldMessages(now);
 
-  const count = messageHistory.filter(msg => msg.text === lowerText).length;
+  // ÖNEMLİ DÜZELTME: Aynı kelimeyi yazan FARKLI (benzersiz) kişileri sayar
+  const messagesWithText = messageHistory.filter(msg => msg.text === lowerText);
+  const count = new Set(messagesWithText.map(msg => msg.senderId)).size;
 
   if (count >= MESSAGE_THRESHOLD) {
     const lastAlerted = cooldowns[lowerText] || 0;
-    
+
     // Eğer bu kelime için en son alarmın üzerinden 5 dakika (RESET_TIME_MS) geçtiyse limiti sıfırla
     if (now - lastAlerted > RESET_TIME_MS) {
-        alertCount[lowerText] = 0;
+      alertCount[lowerText] = 0;
     }
 
     // Sadece cooldown süresi geçtiyse tetikle
     if (now - lastAlerted > COOLDOWN_MS) {
       const currentAlerts = alertCount[lowerText] || 0;
-      
+
       if (currentAlerts < ALERT_LIMIT) {
         console.log(`[Bot] SPAM YAKALANDI: ${lowerText} (${count} kez)`);
-        
+
         // Telegram'a gönder
         sendTelegramMessage(text.trim(), count);
-        
+
         alertCount[lowerText] = currentAlerts + 1;
       }
-      
+
       // Cooldown'a al (sürekli spam devam ederse süreyi ileri atar, limiti aşsa da 5 dk sessizlik bekler)
       cooldowns[lowerText] = now;
     }
@@ -95,8 +104,8 @@ function processNewMessage(text) {
 // --- KICK PUSHER BAĞLANTISI ---
 const chatroomId = process.env.KICK_CHATROOM_ID;
 if (!chatroomId) {
-    console.error("HATA: KICK_CHATROOM_ID .env dosyasında bulunamadı! Lütfen walkthrough dosyasındaki adımları izleyin.");
-    process.exit(1);
+  console.error("HATA: KICK_CHATROOM_ID .env dosyasında bulunamadı! Lütfen walkthrough dosyasındaki adımları izleyin.");
+  process.exit(1);
 }
 
 console.log(`[Bot] Kick Pusher sunucusuna bağlanılıyor... (Oda ID: ${chatroomId})`);
@@ -111,18 +120,18 @@ const pusher = new Pusher('32cbd69e4b950bf97679', {
 const channel = pusher.subscribe(`chatrooms.${chatroomId}.v2`);
 
 channel.bind('App\\Events\\ChatMessageEvent', (data) => {
-  // data.content içerisinde kullanıcının gönderdiği orijinal metin bulunur
-  if (data && data.content) {
-      processNewMessage(data.content);
+  // data.content içerisinde metin, data.sender.id içerisinde gönderen kişinin eşsiz ID'si bulunur
+  if (data && data.content && data.sender && data.sender.id) {
+    processNewMessage(data.content, data.sender.id);
   }
 });
 
 pusher.connection.bind('connected', () => {
-    console.log("[Bot] ✅ Başarıyla Kick Sohbetine bağlandı!");
+  console.log("[Bot] ✅ Başarıyla Kick Sohbetine bağlandı!");
 });
 
 pusher.connection.bind('error', (err) => {
-    console.error("[Bot] ❌ Pusher bağlantı hatası:", err);
+  console.error("[Bot] ❌ Pusher bağlantı hatası:", err);
 });
 
 
