@@ -13,7 +13,6 @@ const RESET_TIME_MS = 5 * 60 * 1000; // 5 dakika sessizlik sonrası sıfırlama
 let messageHistory = [];
 let cooldowns = {};
 let alertCount = {}; // Kelime bazlı bildirim sayacı
-let lastLogTime = 0; // Render logları için zaman tutucu
 
 // Telegram'a Mesaj Gönderme Fonksiyonu
 async function sendTelegramMessage(keyword, count) {
@@ -60,11 +59,7 @@ function processNewMessage(text, senderId) {
 
   if (isTime || isJustPunctuation || isSystemMsg) return;
 
-  // Render loglarında çalıştığını görmek için her 60 saniyede sadece 1 mesaj örneği yazdır (Render'ı yormaz)
-  if (now - lastLogTime > 60 * 1000) {
-      console.log(`[Sistem Kontrol] Gelen Örnek Mesaj: "${text.trim()}" (Botun uyanık olduğunu teyit için dakikada bir yazdırılır)`);
-      lastLogTime = now;
-  }
+  // (Render loglarını yormamak adına örnek chat logu yazdırılması kaldırıldı)
 
   // Mesajı hafızaya ekle (Gönderen kişinin eşsiz ID'si ile birlikte)
   messageHistory.push({ text: lowerText, senderId: senderId, timestamp: now });
@@ -126,9 +121,7 @@ channel.bind('App\\Events\\ChatMessageEvent', (data) => {
   }
 });
 
-pusher.connection.bind('connected', () => {
-  console.log("[Bot] ✅ Başarıyla Kick Sohbetine bağlandı!");
-});
+// Başlangıç bildirimi (Gereksiz restart bildirimlerini engellemek için) kaldırıldı
 
 pusher.connection.bind('error', (err) => {
   console.error("[Bot] ❌ Pusher bağlantı hatası:", err);
