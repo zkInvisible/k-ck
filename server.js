@@ -7,7 +7,7 @@ const express = require('express');
 const TIME_WINDOW_MS = 10 * 1000; // 10 saniye
 const MESSAGE_THRESHOLD = 4; // 4 mesaj
 const COOLDOWN_MS = 10 * 1000; // 10 saniye bekleme süresi
-const ALERT_LIMIT = 1; // Bir kelime için max atılacak bildirim
+const ALERT_LIMIT = 2; // Bir kelime için max atılacak bildirim
 const RESET_TIME_MS = 5 * 60 * 1000; // 5 dakika sessizlik sonrası sıfırlama
 
 let messageHistory = [];
