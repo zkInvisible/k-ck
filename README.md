@@ -1,6 +1,6 @@
 # Kick Telegram Sunucu Botu
 
-Bu bot, Kick sohbetindeki spam mesajları (örneğin çekiliş kelimelerini) algılayıp Telegram üzerinden bildirim gönderir. Render gibi sunucularda 7/24 çalışmaya uygundur.
+Bu bot, Kick sohbetindeki spam mesajları (bizim için çekiliş kelimelerini) algılayıp Telegram üzerinden bildirim gönderir. Render gibi sunucularda 7/24 çalışmaya uygundur.
 
 ## Render.com Kurulum Rehberi
 
