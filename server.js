@@ -4,7 +4,7 @@ const axios = require('axios');
 const express = require('express');
 
 // --- AYARLAR ---
-const TIME_WINDOW_MS = 10 * 1000; // 10 saniye
+const TIME_WINDOW_MS = 15 * 1000; // 15 saniye
 const MESSAGE_THRESHOLD = 5; // 5 mesaj
 const COOLDOWN_MS = 10 * 1000; // 10 saniye bekleme süresi
 const ALERT_LIMIT = 1; // Bir kelime için max atılacak bildirim
