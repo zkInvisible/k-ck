@@ -6,7 +6,7 @@ const express = require('express');
 // --- AYARLAR ---
 const TIME_WINDOW_MS = 15 * 1000; // 15 saniye
 const MESSAGE_THRESHOLD = 6; // 6 mesaj
-const COOLDOWN_MS = 150 * 1000; // 10 saniye bekleme süresi
+const COOLDOWN_MS = 15 * 1000; // 10 saniye bekleme süresi
 const ALERT_LIMIT = 1; // Bir kelime için max atılacak bildirim
 const RESET_TIME_MS = 5 * 60 * 1000; // 5 dakika sessizlik sonrası sıfırlama
 
