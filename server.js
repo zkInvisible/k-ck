@@ -7,7 +7,7 @@ const WebSocket = require('ws');
 
 // --- AYARLAR ---
 const TIME_WINDOW_MS = Number(process.env.TIME_WINDOW_SECONDS || 15) * 1000;
-const MESSAGE_THRESHOLD = Number(process.env.MESSAGE_THRESHOLD || 5);
+const MESSAGE_THRESHOLD = Number(process.env.MESSAGE_THRESHOLD || 6);
 const COOLDOWN_MS = Number(process.env.COOLDOWN_SECONDS || 15) * 1000;
 const ALERT_LIMIT = Number(process.env.ALERT_LIMIT || 1);
 const RESET_TIME_MS = Number(process.env.RESET_TIME_SECONDS || 300) * 1000;
